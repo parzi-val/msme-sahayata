@@ -54,6 +54,12 @@ class Vector:
                 "application": "Includes application details" if meta.get("has_application") else "Please refer to official sites for application instructions."
             })
 
+        scheme_details = "\n".join([
+            f"• {s['content']}\n  - Eligibility: {s['eligibility']}\n  - Description: {s['description']}\n  - Application Info: {s['application']}"
+            for s in scheme_info
+        ])
+
+
         prompt = f"""
         You are an expert MSME scheme advisor.
 
@@ -65,10 +71,7 @@ class Vector:
 
         ------------------------
         RETRIEVED SCHEME DETAILS:
-        {chr(10).join([
-            f"• {s['content']}\n  - Eligibility: {s['eligibility']}\n  - Description: {s['description']}\n  - Application Info: {s['application']}"
-            for s in scheme_info
-        ])}
+        {scheme_details}
         ------------------------
 
         TASK:
