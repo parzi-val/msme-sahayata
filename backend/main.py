@@ -7,6 +7,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from google import genai
 
+import uvicorn
+
 load_dotenv()
 
 app = FastAPI()
@@ -70,3 +72,5 @@ async def message(request: Request):
             return JSONResponse(status_code=500, content={"error": str(e)})
     
 
+if __name__ == "__main__":
+     uvicorn.run(app, host="0.0.0.0", port=8080)
