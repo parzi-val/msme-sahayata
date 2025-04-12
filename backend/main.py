@@ -20,6 +20,13 @@ system_instruction="You are an indian msme grant finder assistant"
 client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 agent = Agent(os.getenv("GOOGLE_API_KEY"))
 
+@app.get("/wakeup")
+async def wakeup():
+    try:
+        print("Received wakeup request")
+        return JSONResponse(content={"message": "Server is awake!"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.post("/translate")
 async def translate(request: Request):
