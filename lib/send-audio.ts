@@ -6,7 +6,7 @@ export async function sendAudioToBackend(audioBlob: Blob): Promise<{ response: s
       const formData = new FormData()
       formData.append("audio", audioBlob, "recording.wav")
   
-      const response = await fetch("/api/transcribe-audio", {
+      const response = await fetch("https://msme-sahayata.onrender.com/transcribe", {
         method: "POST",
         body: formData,
       })
