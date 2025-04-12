@@ -121,7 +121,7 @@ const blogs = {
   },
 }
 
-export default function BlogPage({ params }: { params: { slug: string } }) {
+export default async function BlogPage({ params }: { params: { slug: string } }) {
   const { slug } = await params
   const blog = blogs[slug as keyof typeof blogs] || blogs.pmegp // Default to PMEGP if slug not found
 

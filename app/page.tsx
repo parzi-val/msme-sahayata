@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect } from "react"
 import Link from "next/link"
 import { ArrowRight, MessageSquare, BookOpen, Award, TrendingUp, Users, Shield } from "lucide-react"
 
@@ -7,6 +10,28 @@ import { ScrollReveal } from "@/components/scroll-reveal"
 import { HeroIllustration } from "@/components/hero-illustration"
 
 export default function HomePage() {
+  useEffect(() => {
+    // Function to wake up the backend
+    const wakeUpBackend = async () => {
+      try {
+        // Replace this URL with your actual Python backend URL
+        const response = await fetch('https://msme-sahayata.onrender.com/wakeup', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log('Backend wake-up call sent:', response.status);
+      } catch (error) {
+        console.error('Error waking up backend:', error);
+        // Silent fail - we don't want to block the UI or show errors to users
+      }
+    };
+
+    // Call the function when component mounts
+    wakeUpBackend();
+  }, []); // Empty dependency array means this runs once on mount
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -45,8 +70,10 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent"></div>
       </section>
 
+      {/* Rest of your existing code */}
       {/* Features Section */}
       <section className="py-20">
+        {/* Your existing code */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <div className="mb-16 text-center">

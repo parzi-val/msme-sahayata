@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No message provided" }, { status: 400 })
     }
 
-    const response = await fetch('http://localhost:8000/message', {
+    const response = await fetch('https://msme-sahayata.onrender.com/message', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

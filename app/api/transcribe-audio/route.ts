@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await audioFile.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    const response = await fetch('http://localhost:8000/transcribe', {
+    const response = await fetch('https://msme-sahayata.onrender.com/transcribe', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/octet-stream',

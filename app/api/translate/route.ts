@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     }
     
     // Call your backend API for translation
-    const response = await fetch("http:/localhost:8000/translate", {
+    const response = await fetch("https://msme-sahayata.onrender.com/translate", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

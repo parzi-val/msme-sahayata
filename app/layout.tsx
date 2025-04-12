@@ -14,6 +14,9 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "MSME Sahayata - Government of India",
   description: "Find MSME grants and subsidies you're eligible for",
+  icons: {
+    icon: "/favicon.svg"
+  }
 }
 
 export default async function RootLayout({

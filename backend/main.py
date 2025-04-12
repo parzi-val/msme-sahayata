@@ -8,11 +8,19 @@ from fastapi.responses import JSONResponse
 from google import genai
 
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
 app = FastAPI()
-
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 system_instruction="You are an indian msme grant finder assistant"
 
