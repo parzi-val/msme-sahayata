@@ -14,7 +14,7 @@ load_dotenv()
 app = FastAPI()
 
 
-system_instruction="You are an indian msme grant finder assistant",
+system_instruction="You are an indian msme grant finder assistant"
 
 # Configure Gemini client
 client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -73,4 +73,5 @@ async def message(request: Request):
     
 
 if __name__ == "__main__":
-     uvicorn.run(app, host="0.0.0.0", port=8080)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
