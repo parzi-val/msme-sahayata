@@ -79,7 +79,7 @@ class Agent():
     def transliterate_and_query(self, prompt) -> tuple[str, str]:        
         translation = self.client.models.generate_content(
             model="gemini-2.0-flash-lite",
-            contents=[f"Translate/transliterate this to english, if its already english just mention english.",prompt],
+            contents=[f"Translate/transliterate this to english.",prompt],
             config={
                 'response_mime_type': 'application/json',
                 'response_schema': Translate,
