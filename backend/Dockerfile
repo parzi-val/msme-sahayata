@@ -22,5 +22,4 @@ COPY msme_db ./msme_db
 EXPOSE 8080
 
 # Run the FastAPI app (adjust path if your app instance is named differently)
-CMD ["python", "main.py"]
-
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

@@ -7,13 +7,13 @@ export async function POST(request: Request) {
     // Parse the JSON body
     const body = await request.json();
     const message = body.message;
-    
+    ``
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
     
     // Call your backend API for translation
-    const response = await fetch("https://msme-chatbot-backend-production.up.railway.app/translate", {
+    const response = await fetch("https://msme-backend-production.up.railway.app/translate", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

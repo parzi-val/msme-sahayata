@@ -3,7 +3,7 @@
  */
 export async function sendAudioToBackend(audioBlob: Blob): Promise<{ response: string; language: string }> {
   try {
-    const response = await fetch("https://msme-chatbot-backend-production.up.railway.app/transcribe", {
+    const response = await fetch("https://msme-backend-production.up.railway.app/transcribe", {
       method: "POST",
       headers: {
         "Content-Type": "application/octet-stream",
