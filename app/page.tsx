@@ -15,7 +15,7 @@ export default function HomePage() {
     const wakeUpBackend = async () => {
       try {
         // Replace this URL with your actual Python backend URL
-        const response = await fetch('https://msme-backend-production.up.railway.app/wakeup', {
+        const response = await fetch('https://api.bala.is-a.dev/wakeup', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

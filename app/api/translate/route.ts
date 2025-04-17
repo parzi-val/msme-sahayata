@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     }
     
     // Call your backend API for translation
-    const response = await fetch("https://msme-backend-production.up.railway.app/translate", {
+    const response = await fetch("https://api.bala.is-a.dev/translate", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No message provided" }, { status: 400 })
     }
 
-    const response = await fetch('https://msme-backend-production.up.railway.app/message', {
+    const response = await fetch('https://api.bala.is-a.dev/message', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
