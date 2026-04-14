@@ -25,6 +25,7 @@ app.add_middleware(
 system_instruction="You are an indian msme grant finder assistant"
 
 # Configure Gemini client
+print(os.getenv("GOOGLE_API_KEY"))
 client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 agent = Agent(os.getenv("GOOGLE_API_KEY"))
 
@@ -77,6 +78,8 @@ async def message(request: Request):
         body = await request.json()
         user_message = body.get("message")
 
+        print(user_message)
+
         if not user_message:
             raise HTTPException(status_code=400, detail="Message is required")
     
@@ -84,6 +87,7 @@ async def message(request: Request):
         return JSONResponse(content={"response": response, "language": language})
     
     except Exception as e:
+            print(e)
             return JSONResponse(status_code=500, content={"error": str(e)})
     
 

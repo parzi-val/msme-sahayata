@@ -1,33 +1,21 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Frontend
+/web/node_modules/
+/web/.next/
+/web/out/
+/web/build/
+/web/.env*
+/web/*.tsbuildinfo
 
-# dependencies
-/node_modules
+# Backend
+/backend/__pycache__/
+/backend/.env
+/backend/msme_db/
+/backend/*.mp3
+/backend/msme-docs/
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# debug
+# General
+.env*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-
-# env files
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-
-
-.env
-__pycache__/
-*.mp3
-
-msme-docs/

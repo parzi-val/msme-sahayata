@@ -46,7 +46,7 @@ class Agent():
 
     def translate(self,text)->str:
         translation = self.client.models.generate_content(
-            model="gemini-2.0-flash-lite",
+            model="gemini-2.5-flash-lite",
             contents=[f"Translate this to english", text],
             config={
                 'response_mime_type': 'application/json',
@@ -61,7 +61,7 @@ class Agent():
         uploaded_file = self.client.files.upload(file=file_path)
         
         translation = self.client.models.generate_content(
-            model="gemini-2.0-flash-lite",
+            model="gemini-2.5-flash-lite",
             contents=[f"Translate this to english",uploaded_file],
             config={
                 'response_mime_type': 'application/json',
@@ -76,9 +76,10 @@ class Agent():
 
 
 
-    def transliterate_and_query(self, prompt) -> tuple[str, str]:        
+    def transliterate_and_query(self, prompt) -> tuple[str, str]:     
+        print(prompt)   
         translation = self.client.models.generate_content(
-            model="gemini-2.0-flash-lite",
+            model="gemini-2.5-flash-lite",
             contents=[f"Translate/transliterate this to english",prompt],
             config={
                 'response_mime_type': 'application/json',

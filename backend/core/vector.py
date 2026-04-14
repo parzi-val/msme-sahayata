@@ -22,7 +22,7 @@ class Vector:
 
         try:
             query_embedding = self.genai.models.embed_content(
-                model="models/embedding-001",
+                model="gemini-embedding-2-preview",
                 contents=query,
                 config=types.EmbedContentConfig(task_type="RETRIEVAL_QUERY")
             )    
@@ -94,7 +94,7 @@ class Vector:
         Only show schemes that are a good match. If no scheme matches, suggest visiting the official MSME portal.
         """
         response = self.genai.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash-lite",
             contents=[prompt]
         )
         return response.text

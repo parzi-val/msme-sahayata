@@ -3,19 +3,16 @@ import re
 import time
 
 import chromadb
-import google.generativeai as gen
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from pdfminer.high_level import extract_text
+from tqdm import tqdm
 
 # Load environment variables
 load_dotenv()
 
-# Configure Gemini
-gen.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+genai_client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
 
 # Rate limiter
@@ -38,7 +35,6 @@ def rate_limited(max_per_minute):
 # Enhanced Summary Generation
 @rate_limited(60)
 def generate_scheme_summary(chunk):
-    model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = f"""
     Generate a 2-line summary of this MSME scheme for metadata:
     {chunk[:3000]}
@@ -47,7 +43,10 @@ def generate_scheme_summary(chunk):
     Return only the summary text, no formatting.
     """
     try:
-        response = model.generate_content(prompt)
+        response = genai_client.models.generate_content(
+            model='gemini-2.5-flash-lite',
+            contents=prompt
+        )
         return response.text.strip('*"').strip()
     except Exception as e:
         print(f"Summary generation failed: {e}")
@@ -74,7 +73,7 @@ def split_and_trim(text):
                 "eligibility": eligibility,
                 "description": description,
                 "has_application": contains_application,
-                "keywords": list(set(re.findall(r'\b\w{4,}\b', chunk.lower())))
+                "keywords": ", ".join(list(set(re.findall(r'\b\w{4,}\b', chunk.lower()))))
             }
         })
     
@@ -82,8 +81,7 @@ def split_and_trim(text):
 
 # Document Loader with Validation
 def load_msme_documents(folder_path):
-    documents = []
-    metadatas = []
+    pdf_groups = []
     
     for file_name in os.listdir(folder_path):
         if file_name.endswith(".pdf"):
@@ -91,48 +89,50 @@ def load_msme_documents(folder_path):
             try:
                 text = extract_text(file_path)
                 chunks = split_and_trim(text)
-                
-                for chunk in chunks:
-                    documents.append(chunk["content"])
-                    metadatas.append(chunk["metadata"])
+                pdf_groups.append({
+                    "name": file_name,
+                    "chunks": chunks
+                })
             except Exception as e:
                 print(f"Error processing {file_name}: {e}")
     
-    return documents, metadatas
+    return pdf_groups
 
 # Database Initialization with Validation
-def create_scheme_database(documents, metadatas):
-    client = chromadb.PersistentClient(path="./msme_db")
-    collection = client.get_or_create_collection("msme_schemes")
+def create_scheme_database(pdf_groups):
+    chroma_client = chromadb.PersistentClient(path="./msme_db")
+    collection = chroma_client.get_or_create_collection("msme_schemes")
     
-    embeddings = []
-    for doc in documents:
-        try:
-            embedding = genai.embed_content(
-                model="models/embedding-001",
-                content=doc,
-                task_type="retrieval_document"
-            )["embedding"]
-            embeddings.append(embedding)
-        except Exception as e:
-            print(f"Embedding failed: {e}")
-            continue
-    
-    # Batch insert with metadata
-    batch_size = 5
-    valid_ids = []
     valid_docs = []
     valid_embeds = []
     valid_metas = []
     
-    for i in range(0, len(documents)):
-        if i < len(embeddings):  # Skip failed embeddings
-            valid_ids.append(str(i))
-            valid_docs.append(documents[i])
-            valid_embeds.append(embeddings[i])
-            valid_metas.append(metadatas[i])
+    # Process PDFs with a cooldown every 3 files
+    for i, group in enumerate(tqdm(pdf_groups, desc="Indexing PDFs", ascii=True)):
+        if i > 0 and i % 3 == 0:
+            print(f"\n[Quota Management] Cooldown: Sleeping for 60s...")
+            time.sleep(60)
+            
+        for chunk in group["chunks"]:
+            try:
+                # Gentle sleep between chunks to avoid transient bursts
+                time.sleep(0.5)
+                embedding_response = genai_client.models.embed_content(
+                    model="gemini-embedding-2-preview",
+                    contents=chunk["content"],
+                    config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT")
+                )
+                valid_docs.append(chunk["content"])
+                valid_embeds.append(embedding_response.embeddings[0].values)
+                valid_metas.append(chunk["metadata"])
+            except Exception as e:
+                print(f"Embedding failed for chunk in {group['name']}: {e}")
+                continue
     
-    # Upsert valid entries
+    # Batch insert into ChromaDB
+    batch_size = 5
+    valid_ids = [str(i) for i in range(len(valid_docs))]
+    
     for i in range(0, len(valid_docs), batch_size):
         collection.upsert(
             ids=valid_ids[i:i+batch_size],
@@ -149,18 +149,11 @@ def get_scheme_recommendations(query, collection):
     """Generate recommendations with fallback text for missing details"""
     # Embed query
     try:
-        # query_embedding = genai.embed_content(
-        #     model="models/embedding-001",
-        #     content=query,
-        #     task_type="retrieval_query"
-        # )["embedding"]
-
-        query_embedding = client.models.embed_content(
-            model="models/embedding-001",
+        query_embedding = genai_client.models.embed_content(
+            model="gemini-embedding-2-preview",
             contents=query,
             config=types.EmbedContentConfig(task_type="RETRIEVAL_QUERY")
         )
-        print(len(query_embedding.embeddings))
 
     except Exception as e:
         return f"Query embedding failed: {str(e)}"
@@ -189,6 +182,12 @@ def get_scheme_recommendations(query, collection):
             "application": "Includes application details" if meta.get("has_application") else "Please refer to official sites for application instructions."
         })
 
+    # Prepare string outside to prevent backslash within f-string curly braces
+    retrieved_details_str = "\n".join([
+        f"• {s['content']}\n  - Eligibility: {s['eligibility']}\n  - Description: {s['description']}\n  - Application Info: {s['application']}"
+        for s in scheme_info
+    ])
+
     # Generate response
     # model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = f"""
@@ -200,10 +199,7 @@ You have access to relevant MSME scheme documents retrieved based on the query.
 
 ------------------------
 RETRIEVED SCHEME DETAILS:
-{chr(10).join([
-    f"• {s['content']}\n  - Eligibility: {s['eligibility']}\n  - Description: {s['description']}\n  - Application Info: {s['application']}"
-    for s in scheme_info
-])}
+{retrieved_details_str}
 ------------------------
 
 TASK:
@@ -227,8 +223,8 @@ Only show schemes that are a good match. If no scheme matches, suggest visiting 
 
     try:
         # response = model.generate_content(prompt)
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
+        response = genai_client.models.generate_content(
+            model="gemini-2.5-flash-lite",
             contents=[prompt]
         )
         return response.text
@@ -238,19 +234,19 @@ Only show schemes that are a good match. If no scheme matches, suggest visiting 
 
 # Main Application Flow
 def main():
-    print("\n🔍 MSME Scheme Recommendation Assistant")
+    print("\n[INFO] MSME Scheme Recommendation Assistant")
     
     # Initialize database
     if not os.path.exists("./msme_db"):
         print("Building knowledge base...")
-        docs, metas = load_msme_documents("./msme-docs")
-        if not docs:
+        pdf_groups = load_msme_documents("./msme-docs")
+        if not pdf_groups:
             print("No valid documents found. Check PDF files and try again.")
             return
-        db = create_scheme_database(docs, metas)
+        db = create_scheme_database(pdf_groups)
     else:
-        client = chromadb.PersistentClient(path="./msme_db")
-        db = client.get_collection("msme_schemes")
+        chroma_client = chromadb.PersistentClient(path="./msme_db")
+        db = chroma_client.get_collection("msme_schemes")
     
     # Interactive session
     print("Type 'exit' to quit\n")
